@@ -45,7 +45,7 @@ jobs:
         
         # Probar imports críticos
         python -c "from suite.launcher import main; print('✅ Import de launcher exitoso!')"
-        python -c "from suite.apps.inmr.main1 import main; print('✅ Import de iNMR exitoso!')"
+        python -c "from suite.apps.inmr.maini import main; print('✅ Import de iNMR exitoso!')"
         python -c "from suite.apps.qnmr.mainq import main; print('✅ Import de qNMR exitoso!')"
         python -c "from suite.apps.snmr.mains import main; print('✅ Import de sNMR exitoso!')"
         
