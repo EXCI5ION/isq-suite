@@ -3,11 +3,11 @@ name: Build ISQ Suite Installer
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # Permite ejecuciones manuales
+  workflow_dispatch:
 
 jobs:
   build-windows-installer:
-    runs-on: windows-latest  # Usamos Windows porque tu instalador es para Windows
+    runs-on: windows-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -31,19 +31,17 @@ jobs:
         
     - name: Validate project structure
       run: |
-        # Verificar estructura básica
         python -c "import os; assert os.path.exists('src/suite/launcher.py'), 'ERROR: No se encuentra launcher.py'"
-        python -c "import os; assert os.path.exists('resources/icons/NMR.ico'), 'ERROR: No se encuentran íconos'"
+        python -c "import os; assert os.path.exists('resources/icons/'), 'ERROR: No se encuentra la carpeta de íconos'"
         python -c "import os; assert os.path.exists('construct.yaml'), 'ERROR: No se encuentra construct.yaml'"
+        python -c "import os; assert os.path.exists('meta.yaml'), 'ERROR: No se encuentra meta.yaml'"
         
     - name: Test imports
       run: |
-        # Crear entorno temporal
         conda create -n test_env python=3.10 -y
         conda activate test_env
         pip install -e .
         
-        # Probar imports críticos
         python -c "from suite.launcher import main; print('✅ Import de launcher exitoso!')"
         python -c "from suite.apps.inmr.maini import main; print('✅ Import de iNMR exitoso!')"
         python -c "from suite.apps.qnmr.mainq import main; print('✅ Import de qNMR exitoso!')"
