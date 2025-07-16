@@ -1,0 +1,43 @@
+name: ISQ_Suite
+version: 1.0.0
+company: "EXCI5ION"
+
+channels:
+  - conda-forge
+  - defaults
+
+specs:
+  - python=3.10
+  - pywin32
+  - pip
+  - pip:
+      - -r requirements.txt
+
+executables:
+  - name: isq-suite
+    script: suite.launcher:main
+  - name: isq-inmr
+    script: suite.apps.inmr.maini:main
+  - name: isq-qnmr
+    script: suite.apps.qnmr.mainq:main
+  - name: isq-snmr
+    script: suite.apps.snmr.mains:main
+
+menu_items:
+  - name: "ISQ Suite"
+    executable: isq-suite
+    icon: "resources/icons/ISQ.ico"
+  - name: "iNMR"
+    executable: isq-inmr
+    icon: "resources/icons/iNMR.ico"
+  - name: "qNMR"
+    executable: isq-qnmr
+    icon: "resources/icons/qNMR.ico"
+  - name: "sNMR"
+    executable: isq-snmr
+    icon: "resources/icons/sNMR.ico"
+
+extra_files:
+  - "resources/icons/*"
+
+post_install: scripts/create_shortcuts.py
