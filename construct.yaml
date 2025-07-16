@@ -15,13 +15,13 @@ specs:
 
 executables:
   - name: isq-suite
-    script: suite.launcher:main
+    script: suite.launcher:run
   - name: isq-inmr
-    script: suite.apps.inmr.maini:main
+    script: suite.apps.inmr.maini:run
   - name: isq-qnmr
-    script: suite.apps.qnmr.mainq:main
+    script: suite.apps.qnmr.mainq:run
   - name: isq-snmr
-    script: suite.apps.snmr.mains:main
+    script: suite.apps.snmr.mains:run
 
 menu_items:
   - name: "ISQ Suite"
