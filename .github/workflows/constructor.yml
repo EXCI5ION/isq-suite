@@ -53,7 +53,7 @@ jobs:
       run: constructor --platform win-64 .
       
     - name: Save installer artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ISQ_Suite_Installer
         path: output/*.exe
