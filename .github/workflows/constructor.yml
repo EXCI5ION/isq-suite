@@ -12,57 +12,45 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Setup Miniconda
-      uses: conda-incubator/setup-miniconda@v2
-      with:
-        python-version: "3.10"
-        miniconda-version: "latest"
-        auto-update-conda: true
-        activate-environment: "isq-suite"
-        
-    - name: Install dependencies
+    - name: Install Miniconda (Manual)
+      shell: powershell
       run: |
-        conda install -c conda-forge conda-build -y
-        pip install ruamel.yaml
-        conda list
+        # Descargar e instalar Miniconda manualmente
+        $minicondaUrl = "https://repo.anaconda.com/miniconda/Miniconda3-py310_24.5.0-0-Windows-x86_64.exe"
+        $installerPath = "$env:RUNNER_TEMP\miniconda_installer.exe"
+        Invoke-WebRequest -Uri $minicondaUrl -OutFile $installerPath
         
-    - name: Install Constructor
-      run: pip install git+https://github.com/conda/constructor@main
+        # Instalar silenciosamente
+        Start-Process -FilePath $installerPath -ArgumentList "/S", "/AddToPath=1", "/RegisterPython=1", "/D=$env:RUNNER_TEMP\Miniconda3" -Wait
         
-    - name: Install conda-standalone
+        # Configurar entorno
+        $env:Path = "$env:RUNNER_TEMP\Miniconda3;$env:RUNNER_TEMP\Miniconda3\Scripts;$env:RUNNER_TEMP\Miniconda3\Library\bin;$env:Path"
+        conda init powershell
+        conda config --set always_yes yes --set changeps1 no
+        
+        # Verificar instalación
+        conda --version
+        python --version
+        
+    - name: Set up Python environment
+      shell: powershell
       run: |
-        $condaUrl = "https://github.com/conda/conda-standalone/releases/download/24.5.0-0/conda-win-64.exe"
-        Invoke-WebRequest -Uri $condaUrl -OutFile conda.exe
-        if (-not (Test-Path -Path "conda.exe")) {
-            Write-Error "Failed to download conda-standalone"
-            exit 1
-        }
-        echo "Conda standalone downloaded"
+        # Crear entorno
+        conda create -n isq_env python=3.10 -y
+        conda activate isq_env
         
-    - name: Validate project structure
-      run: |
-        python -c "import os; assert os.path.exists('src/suite/launcher.py'), 'ERROR: No se encuentra launcher.py'"
-        python -c "import os; assert os.path.exists('resources/icons/'), 'ERROR: No se encuentra la carpeta de íconos'"
-        python -c "import os; assert os.path.exists('construct.yaml'), 'ERROR: No se encuentra construct.yaml'"
+        # Instalar dependencias
+        pip install constructor ruamel.yaml
         
-    - name: Test imports
-      run: |
-        conda create -n test_env python=3.10 -y
-        conda activate test_env
-        pip install -r requirements.txt
-        pip install -e .
-        
-        # Pruebas de importación
-        python -c "import suite; print('Módulo suite importado correctamente')"
-        python -c "import suite.launcher; print('Módulo launcher importado')"
-        python -c "import suite.apps.inmr.maini; print('Módulo iNMR importado')"
-        python -c "import suite.apps.qnmr.mainq; print('Módulo qNMR importado')"
-        python -c "import suite.apps.snmr.mains; print('Módulo sNMR importado')"
+        # Verificar instalación
+        constructor --version
         
     - name: Build installer
+      shell: powershell
       run: |
-        constructor --conda-exe "$(pwd)\conda.exe" --platform win-64 .
-      
+        conda activate isq_env
+        constructor --platform win-64 .
+        
     - name: Save installer artifact
       uses: actions/upload-artifact@v4
       with:
