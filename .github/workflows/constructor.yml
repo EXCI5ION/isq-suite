@@ -51,8 +51,8 @@ jobs:
         # Verificar puntos de entrada
         python -c "from suite.launcher import SuiteApp; print('[OK] Clase LauncherApp disponible')"
         python -c "from suite.apps.inmr.maini import MainApp; print('[OK] iNMR importado')"
-        python -c "from suite.apps.qnmr.mainq import ScalingApp; print('[OK] qNMR importado')"
-        python -c "from suite.apps.snmr.mains import QuantifyApp; print('[OK] sNMR importado')"
+        python -c "from suite.apps.qnmr.mainq import QuantifyApp; print('[OK] qNMR importado')"
+        python -c "from suite.apps.snmr.mains import ScalingApp; print('[OK] sNMR importado')"
         
     - name: Build installer
       run: constructor --platform win-64 .
