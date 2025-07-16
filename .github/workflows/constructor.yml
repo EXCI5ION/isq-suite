@@ -43,16 +43,16 @@ jobs:
         pip install -e .
         
          # Verificar que los módulos existen
-        python -c "import suite; print('✅ Módulo suite importado correctamente')"
-        python -c "import suite.apps.inmr; print('✅ Módulo inmr importado correctamente')"
-        python -c "import suite.apps.qnmr; print('✅ Módulo qnmr importado correctamente')"
-        python -c "import suite.apps.snmr; print('✅ Módulo snmr importado correctamente')"
+        python -c "import suite; print('[OK] Módulo suite importado correctamente')"
+        python -c "import suite.apps.inmr; print('[OK] Módulo inmr importado correctamente')"
+        python -c "import suite.apps.qnmr; print('[OK] Módulo qnmr importado correctamente')"
+        python -c "import suite.apps.snmr; print('[OK] Módulo snmr importado correctamente')"
     
         # Verificar puntos de entrada
-        python -c "from suite.launcher import main; print('✅ Launcher importado')"
-        python -c "from suite.apps.inmr.maini import main; print('✅ iNMR importado')"
-        python -c "from suite.apps.qnmr.mainq import main; print('✅ qNMR importado')"
-        python -c "from suite.apps.snmr.mains import main; print('✅ sNMR importado')"
+        python -c "from suite.launcher import main; print('[OK] Launcher importado')"
+        python -c "from suite.apps.inmr.maini import main; print('[OK] iNMR importado')"
+        python -c "from suite.apps.qnmr.mainq import main; print('[OK] qNMR importado')"
+        python -c "from suite.apps.snmr.mains import main; print('[OK] sNMR importado')"
         
     - name: Build installer
       run: constructor --platform win-64 .
