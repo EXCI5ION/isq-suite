@@ -10,6 +10,7 @@ setup(
         'numpy',
         'pandas',
         'matplotlib',
+        'tksheet',
         # Agrega aquí otras dependencias clave
     ],
     entry_points={
