@@ -1,0 +1,59 @@
+name: Build ISQ Suite Installer
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Permite ejecuciones manuales
+
+jobs:
+  build-windows-installer:
+    runs-on: windows-latest  # Usamos Windows porque tu instalador es para Windows
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        python-version: "3.10"
+        miniconda-version: "latest"
+        auto-update-conda: true
+        activate-environment: "isq-suite"
+        
+    - name: Install dependencies
+      run: |
+        conda install -c conda-forge conda-build -y
+        pip install ruamel.yaml
+        conda list
+        
+    - name: Install Constructor
+      run: pip install git+https://github.com/conda/constructor@main
+        
+    - name: Validate project structure
+      run: |
+        # Verificar estructura básica
+        python -c "import os; assert os.path.exists('src/suite/launcher.py'), 'ERROR: No se encuentra launcher.py'"
+        python -c "import os; assert os.path.exists('resources/icons/NMR.ico'), 'ERROR: No se encuentran íconos'"
+        python -c "import os; assert os.path.exists('construct.yaml'), 'ERROR: No se encuentra construct.yaml'"
+        
+    - name: Test imports
+      run: |
+        # Crear entorno temporal
+        conda create -n test_env python=3.10 -y
+        conda activate test_env
+        pip install -e .
+        
+        # Probar imports críticos
+        python -c "from suite.launcher import main; print('✅ Import de launcher exitoso!')"
+        python -c "from suite.apps.inmr.main1 import main; print('✅ Import de iNMR exitoso!')"
+        python -c "from suite.apps.qnmr.mainq import main; print('✅ Import de qNMR exitoso!')"
+        python -c "from suite.apps.snmr.mains import main; print('✅ Import de sNMR exitoso!')"
+        
+    - name: Build installer
+      run: constructor --platform win-64 .
+      
+    - name: Save installer artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ISQ_Suite_Installer
+        path: output/*.exe
