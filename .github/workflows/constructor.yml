@@ -26,8 +26,18 @@ jobs:
         pip install ruamel.yaml
         conda list
         
-    - name: Install Constructor
-      run: pip install git+https://github.com/conda/constructor@main
+    - name: Install conda-standalone
+      run: |
+        # Descarga el ejecutable standalone de Conda
+        $condaUrl = "https://github.com/conda/conda-standalone/releases/download/24.5.0-0/conda-win-64.exe"
+        Invoke-WebRequest -Uri $condaUrl -OutFile conda.exe
+    
+        # Verifica que se descargó
+        if (-not (Test-Path -Path "conda.exe")) {
+            Write-Error "Failed to download conda-standalone"
+            exit 1
+        }
+        echo "Conda standalone downloaded"
         
     - name: Validate project structure
       run: |
@@ -55,7 +65,9 @@ jobs:
         python -c "from suite.apps.snmr.mains import ScalingApp; print('[OK] sNMR importado')"
         
     - name: Build installer
-      run: constructor --platform win-64 .
+      run: |
+        # Usa el ejecutable descargado
+        constructor --conda-exe "$(pwd)\conda.exe" --platform win-64 .
       
     - name: Save installer artifact
       uses: actions/upload-artifact@v4
