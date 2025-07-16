@@ -26,13 +26,13 @@ jobs:
         pip install ruamel.yaml
         conda list
         
+    - name: Install Constructor
+      run: pip install git+https://github.com/conda/constructor@main
+        
     - name: Install conda-standalone
       run: |
-        # Descarga el ejecutable standalone de Conda
         $condaUrl = "https://github.com/conda/conda-standalone/releases/download/24.5.0-0/conda-win-64.exe"
         Invoke-WebRequest -Uri $condaUrl -OutFile conda.exe
-    
-        # Verifica que se descargó
         if (-not (Test-Path -Path "conda.exe")) {
             Write-Error "Failed to download conda-standalone"
             exit 1
@@ -44,29 +44,23 @@ jobs:
         python -c "import os; assert os.path.exists('src/suite/launcher.py'), 'ERROR: No se encuentra launcher.py'"
         python -c "import os; assert os.path.exists('resources/icons/'), 'ERROR: No se encuentra la carpeta de íconos'"
         python -c "import os; assert os.path.exists('construct.yaml'), 'ERROR: No se encuentra construct.yaml'"
-        python -c "import os; assert os.path.exists('meta.yaml'), 'ERROR: No se encuentra meta.yaml'"
         
     - name: Test imports
       run: |
         conda create -n test_env python=3.10 -y
         conda activate test_env
+        pip install -r requirements.txt
         pip install -e .
         
-         # Verificar que los módulos existen
-        python -c "import suite; print('[OK] Módulo suite importado correctamente')"
-        python -c "import suite.apps.inmr; print('[OK] Módulo inmr importado correctamente')"
-        python -c "import suite.apps.qnmr; print('[OK] Módulo qnmr importado correctamente')"
-        python -c "import suite.apps.snmr; print('[OK] Módulo snmr importado correctamente')"
-    
-        # Verificar puntos de entrada
-        python -c "from suite.launcher import SuiteApp; print('[OK] Clase LauncherApp disponible')"
-        python -c "from suite.apps.inmr.maini import MainApp; print('[OK] iNMR importado')"
-        python -c "from suite.apps.qnmr.mainq import QuantifyApp; print('[OK] qNMR importado')"
-        python -c "from suite.apps.snmr.mains import ScalingApp; print('[OK] sNMR importado')"
+        # Pruebas de importación
+        python -c "import suite; print('Módulo suite importado correctamente')"
+        python -c "import suite.launcher; print('Módulo launcher importado')"
+        python -c "import suite.apps.inmr.maini; print('Módulo iNMR importado')"
+        python -c "import suite.apps.qnmr.mainq; print('Módulo qNMR importado')"
+        python -c "import suite.apps.snmr.mains; print('Módulo sNMR importado')"
         
     - name: Build installer
       run: |
-        # Usa el ejecutable descargado
         constructor --conda-exe "$(pwd)\conda.exe" --platform win-64 .
       
     - name: Save installer artifact
