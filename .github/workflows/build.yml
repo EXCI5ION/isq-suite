@@ -11,54 +11,52 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        lf: true
-        
+      
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2
       with:
-        python-version: "3.10"
         miniconda-version: "latest"
         auto-activate-base: true
-        activate-environment: builder
         channels: conda-forge,defaults
         channel-priority: strict
         
-    - name: Install constructor
-      shell: bash -l {0}
+    - name: Install Python and dependencies
       run: |
-        conda install -n base -c conda-forge constructor=3.11.3 -y
-        echo "===== Constructor Info ====="
-        which constructor
+        conda install python=3.10 -y
+        pip install ruamel.yaml
+        
+    - name: Install constructor from source
+      run: |
+        # Instalar versión específica desde GitHub
+        git clone https://github.com/conda/constructor.git
+        cd constructor
+        git checkout 3.11.3
+        pip install .
+        cd ..
+        
+    - name: Verify installation
+      run: |
+        echo "Python version: $(python --version)"
+        echo "Constructor path: $(which constructor)"
         constructor --version
-        python -c "import constructor; print(f'Module version: {constructor.__version__}'); print(f'Module path: {constructor.__file__}')"
+        python -c "import constructor; print(f'Constructor module version: {constructor.__version__}')"
         
-    - name: Debug environment
+    - name: Build installer
       run: |
-        echo "===== Environment Variables ====="
-        env | sort
-        echo "===== Conda Info ====="
-        conda info
-        conda list
-        echo "===== Python Path ====="
-        python -c "import sys; print(sys.path)"
+        # Usar un construct.yaml simplificado
+        echo "name: Test_Installer" > minimal.yaml
+        echo "version: 1.0.0" >> minimal.yaml
+        echo "channels:" >> minimal.yaml
+        echo "  - conda-forge" >> minimal.yaml
+        echo "specs:" >> minimal.yaml
+        echo "  - python=3.10" >> minimal.yaml
+        echo "  - numpy" >> minimal.yaml
         
-    - name: Create test config
-      run: |
-        echo "name: Test_Installer" > test.yaml
-        echo "version: 1.0.0" >> test.yaml
-        echo "channels:" >> test.yaml
-        echo "  - conda-forge" >> test.yaml
-        echo "specs:" >> test.yaml
-        echo "  - python=3.10" >> test.yaml
-        echo "  - numpy" >> test.yaml
-        
-    - name: Test minimal build
-      run: |
-        constructor --platform linux-64 --verbose test.yaml
+        constructor --platform linux-64 minimal.yaml
         
     - name: Build main installer
       run: |
+        # Construir con tu configuración principal
         constructor --platform linux-64 --verbose .
         
     - name: Upload installer
