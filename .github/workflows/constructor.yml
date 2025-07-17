@@ -20,10 +20,10 @@ jobs:
         auto-activate-base: false
         channels: conda-forge,defaults
         
-    - name: Install constructor
+    - name: Install latest constructor
       shell: bash -l {0}
       run: |
-        conda install -c conda-forge "constructor>=3.7.0" -y
+        pip install --upgrade "constructor>=3.7.0"
         constructor --version
         
     - name: Install project dependencies
