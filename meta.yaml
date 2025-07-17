@@ -1,9 +1,0 @@
-package:
-  name: isq-suite
-  version: 1.0.0
-
-about:
-  home: "https://github.com/EXCI5ION/isq-suite"
-  license: MIT
-  summary: "Suite para procesamiento de datos RMN"
-  icon: "resources/icons/ISQ.ico"
