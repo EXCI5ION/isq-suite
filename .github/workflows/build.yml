@@ -1,0 +1,235 @@
+name: Build Suite with PyInstaller
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build Windows executables
+      run: |
+        pyinstaller --onefile --name isq-suite.exe `
+          --icon resources/icons/ISQ.ico `
+          --add-data "resources/icons;resources/icons" `
+          suite/launcher.py
+        
+        pyinstaller --onefile --name isq-inmr.exe `
+          --icon resources/icons/iNMR.ico `
+          --add-data "resources/icons;resources/icons" `
+          suite/apps/inmr/maini.py
+        
+        pyinstaller --onefile --name isq-qnmr.exe `
+          --icon resources/icons/qNMR.ico `
+          --add-data "resources/icons;resources/icons" `
+          suite/apps/qnmr/mainq.py
+        
+        pyinstaller --onefile --name isq-snmr.exe `
+          --icon resources/icons/sNMR.ico `
+          --add-data "resources/icons;resources/icons" `
+          suite/apps/snmr/mains.py
+
+    - name: Install Inno Setup
+      uses: ardalis/setup-inno-setup@v1
+      with:
+        version: '6.2.0'
+
+    - name: Create installer script
+      run: |
+        # Crear script ISS para Inno Setup
+        $issContent = @"
+        [Setup]
+        AppName=ISQ Suite
+        AppVersion=1.0.0
+        AppPublisher=EXCI5ION
+        DefaultDirName={autopf}\ISQ Suite
+        DefaultGroupName=ISQ Suite
+        OutputBaseFilename=ISQ_Suite_Installer
+        SetupIconFile=resources\icons\ISQ.ico
+        Compression=lzma2
+        SolidCompression=yes
+        OutputDir=dist
+
+        [Files]
+        Source: "dist\isq-suite.exe"; DestDir: "{app}\bin"
+        Source: "dist\isq-inmr.exe"; DestDir: "{app}\bin"
+        Source: "dist\isq-qnmr.exe"; DestDir: "{app}\bin"
+        Source: "dist\isq-snmr.exe"; DestDir: "{app}\bin"
+        Source: "resources\icons\*"; DestDir: "{app}\icons"
+
+        [Icons]
+        Name: "{group}\ISQ Suite"; Filename: "{app}\bin\isq-suite.exe"; IconFilename: "{app}\icons\ISQ.ico"
+        Name: "{group}\iNMR"; Filename: "{app}\bin\isq-inmr.exe"; IconFilename: "{app}\icons\iNMR.ico"
+        Name: "{group}\qNMR"; Filename: "{app}\bin\isq-qnmr.exe"; IconFilename: "{app}\icons\qNMR.ico"
+        Name: "{group}\sNMR"; Filename: "{app}\bin\isq-snmr.exe"; IconFilename: "{app}\icons\sNMR.ico"
+        Name: "{commondesktop}\ISQ Suite"; Filename: "{app}\bin\isq-suite.exe"; IconFilename: "{app}\icons\ISQ.ico"
+        Name: "{commondesktop}\iNMR"; Filename: "{app}\bin\isq-inmr.exe"; IconFilename: "{app}\icons\iNMR.ico"
+        "@
+        Set-Content -Path "installer.iss" -Value $issContent
+
+    - name: Compile installer
+      run: iscc installer.iss
+
+    - name: Upload Windows installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: ISQ_Suite_Windows
+        path: dist/ISQ_Suite_Installer.exe
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y binutils libgl1-mesa-dev
+
+    - name: Install Python dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build Linux executables
+      run: |
+        pyinstaller --onefile --name isq-suite \
+          --icon resources/icons/ISQ.ico \
+          --add-data "resources/icons:resources/icons" \
+          suite/launcher.py
+        
+        pyinstaller --onefile --name isq-inmr \
+          --icon resources/icons/iNMR.ico \
+          --add-data "resources/icons:resources/icons" \
+          suite/apps/inmr/maini.py
+        
+        pyinstaller --onefile --name isq-qnmr \
+          --icon resources/icons/qNMR.ico \
+          --add-data "resources/icons:resources/icons" \
+          suite/apps/qnmr/mainq.py
+        
+        pyinstaller --onefile --name isq-snmr \
+          --icon resources/icons/sNMR.ico \
+          --add-data "resources/icons:resources/icons" \
+          suite/apps/snmr/mains.py
+
+    - name: Create AppImage (opcional)
+      run: |
+        # Requiere appimagetool instalado
+        wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+        
+        mkdir -p AppDir/usr/bin
+        cp dist/isq-* AppDir/usr/bin/
+        cp -r resources/icons AppDir/usr/share/icons
+        
+        cat > AppDir/ISQ-Suite.desktop <<EOL
+        [Desktop Entry]
+        Name=ISQ Suite
+        Exec=isq-suite
+        Icon=ISQ
+        Type=Application
+        Categories=Science;
+        EOL
+        
+        ./appimagetool-x86_64.AppImage AppDir
+
+    - name: Package Linux distribution
+      run: |
+        # Crear paquete .tar.gz para distribución
+        mkdir -p isq_suite_linux/bin
+        mkdir -p isq_suite_linux/icons
+        
+        cp dist/isq-* isq_suite_linux/bin/
+        cp resources/icons/* isq_suite_linux/icons/
+        
+        tar czvf ISQ_Suite_Linux.tar.gz isq_suite_linux
+
+    - name: Upload Linux artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ISQ_Suite_Linux
+        path: |
+          ISQ_Suite_Linux.tar.gz
+          *.AppImage  # Si se generó AppImage
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build macOS applications
+      run: |
+        # Crear bundles .app
+        pyinstaller --name "ISQ Suite" --windowed \
+          --icon resources/icons/ISQ.ico \
+          --osx-bundle-identifier com.exci5ion.isq-suite \
+          suite/launcher.py
+        
+        pyinstaller --name "iNMR" --windowed \
+          --icon resources/icons/iNMR.ico \
+          --osx-bundle-identifier com.exci5ion.inmr \
+          suite/apps/inmr/maini.py
+        
+        pyinstaller --name "qNMR" --windowed \
+          --icon resources/icons/qNMR.ico \
+          --osx-bundle-identifier com.exci5ion.qnmr \
+          suite/apps/qnmr/mainq.py
+        
+        pyinstaller --name "sNMR" --windowed \
+          --icon resources/icons/sNMR.ico \
+          --osx-bundle-identifier com.exci5ion.snmr \
+          suite/apps/snmr/mains.py
+
+    - name: Create DMG installer
+      run: |
+        # Crear estructura de directorios
+        mkdir ISQ_Suite_Installation
+        mv dist/"ISQ Suite.app" ISQ_Suite_Installation/
+        mv dist/"iNMR.app" ISQ_Suite_Installation/
+        mv dist/"qNMR.app" ISQ_Suite_Installation/
+        mv dist/"sNMR.app" ISQ_Suite_Installation/
+        
+        # Crear DMG
+        hdiutil create -volname "ISQ Suite" \
+          -srcfolder ISQ_Suite_Installation \
+          -ov -format UDZO ISQ_Suite.dmg
+
+    - name: Upload macOS artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ISQ_Suite_macOS
+        path: ISQ_Suite.dmg
