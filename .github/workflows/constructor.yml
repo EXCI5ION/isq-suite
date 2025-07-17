@@ -23,7 +23,7 @@ jobs:
     - name: Install latest constructor
       shell: bash -l {0}
       run: |
-        pip install --upgrade "constructor>=3.7.0"
+        conda install -c conda-forge "constructor>=3.7.0" -y
         constructor --version
         
     - name: Install project dependencies
