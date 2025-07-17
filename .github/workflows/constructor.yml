@@ -7,6 +7,7 @@ on:
 
 jobs:
   build-windows-installer:
+    timeout-minutes: 30
     runs-on: windows-latest
     steps:
     - name: Checkout repository
@@ -16,22 +17,36 @@ jobs:
       uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: "3.10"
+        miniconda-version: "latest"
         activate-environment: constructor-env
-        auto-activate-base: false
         channels: conda-forge,defaults
+        channel-priority: strict
         
-    - name: Install latest constructor
+    - name: Install constructor
       shell: bash -l {0}
       run: |
-        conda install -c conda-forge "constructor>=3.7.0" -y
-        constructor --version
+        # Limpiar instalaciones previas
+        conda remove --all --yes constructor || true
         
-    - name: Install project dependencies
+        # Instalar versión específica
+        conda install -c conda-forge constructor=3.11.3 -y
+        
+    - name: Verify installation
+      shell: bash -l {0}
       run: |
-        # Instalar dependencias que Constructor necesita para empaquetar
-        pip install -r requirements.txt
+        echo "===== Version Information ====="
+        constructor --version
+        python -c "import constructor; print('Constructor module version:', constructor.__version__)"
+        python -c "import constructor; print('Constructor module path:', constructor.__file__)"
+        echo "==============================="
+        
+    - name: Debug construct.yaml
+      run: |
+        # Verificar el contenido real del archivo
+        cat construct.yaml
         
     - name: Build installer
+      shell: bash -l {0}
       run: |
         constructor --verbose --platform win-64 .
         
@@ -39,4 +54,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ISQ_Suite_Installer
-        path: dist/*.exe  # Ruta corregida
+        path: dist/*.exe
