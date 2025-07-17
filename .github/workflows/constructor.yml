@@ -12,47 +12,32 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Install Miniconda (Manual)
-      shell: powershell
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        python-version: 3.10
+        activate-environment: isq-build
+        auto-activate-base: false
+        channels: conda-forge,defaults
+        
+    - name: Install constructor
+      shell: bash -l {0}  # Important for conda activation
       run: |
-        # Descargar e instalar Miniconda manualmente
-        $minicondaUrl = "https://repo.anaconda.com/miniconda/Miniconda3-py310_24.5.0-0-Windows-x86_64.exe"
-        $installerPath = "$env:RUNNER_TEMP\miniconda_installer.exe"
-        Invoke-WebRequest -Uri $minicondaUrl -OutFile $installerPath
+        conda install -c conda-forge constructor -y
         
-        # Instalar silenciosamente
-        Start-Process -FilePath $installerPath -ArgumentList "/S", "/AddToPath=1", "/RegisterPython=1", "/D=$env:RUNNER_TEMP\Miniconda3" -Wait
-        
-        # Configurar entorno
-        $env:Path = "$env:RUNNER_TEMP\Miniconda3;$env:RUNNER_TEMP\Miniconda3\Scripts;$env:RUNNER_TEMP\Miniconda3\Library\bin;$env:Path"
-        conda init powershell
-        conda config --set always_yes yes --set changeps1 no
-        
-        # Verificar instalación
-        conda --version
-        python --version
-        
-    - name: Set up Python environment
-      shell: powershell
+    - name: Install project dependencies
+      shell: bash -l {0}
       run: |
-        # Crear entorno
-        conda create -n isq_env python=3.10 -y
-        conda activate isq_env
-        
-        # Instalar dependencias
-        pip install constructor ruamel.yaml
-        
-        # Verificar instalación
-        constructor --version
+        # Instalar dependencias que Constructor necesita para empaquetar
+        pip install -r requirements.txt
         
     - name: Build installer
-      shell: powershell
+      shell: bash -l {0}
       run: |
-        conda activate isq_env
         constructor --platform win-64 .
         
-    - name: Save installer artifact
+    - name: Upload installer
       uses: actions/upload-artifact@v4
       with:
         name: ISQ_Suite_Installer
-        path: output/*.exe
+        path: dist/*.exe  # Ruta corregida
