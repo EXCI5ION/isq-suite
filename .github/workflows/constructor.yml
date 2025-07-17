@@ -7,64 +7,49 @@ on:
 
 jobs:
   build-windows-installer:
-    timeout-minutes: 30
+    timeout-minutes: 45
     runs-on: windows-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
-    - name: Set up Miniconda
+      with:
+        lf: true  # Forzar terminadores de línea Unix
+        
+    - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: "3.10"
         miniconda-version: "latest"
-        activate-environment: constructor-env
+        auto-update-conda: true
+        activate-environment: build-env
         channels: conda-forge,defaults
-        channel-priority: strict
         
     - name: Install constructor
       shell: bash -l {0}
       run: |
-        # Limpiar instalaciones previas
-        conda remove --all --yes constructor || true
-        
-        # Instalar versión específica
         conda install -c conda-forge constructor=3.11.3 -y
+        constructor --version
         
-    - name: Verify installation
+    - name: Validate environment
       shell: bash -l {0}
       run: |
-        echo "===== Version Information ====="
-        constructor --version
-        python -c "import constructor; print('Constructor module version:', constructor.__version__)"
-        python -c "import constructor; print('Constructor module path:', constructor.__file__)"
-        echo "==============================="
-        
-    - name: Debug construct.yaml
-      run: |
-        # Verificar el contenido real del archivo
-        cat construct.yaml
-
-    - name: Check file encoding
-      run: |
-        file construct.yaml
-        iconv -f UTF-8 -t UTF-8 construct.yaml > /dev/null || echo "Invalid encoding"
+        conda list
+        python -c "import sys; print(sys.executable)"
+        python -c "import constructor; print(f'Constructor {constructor.__version__} at {constructor.__file__}')"
         
     - name: Build installer
       shell: bash -l {0}
       run: |
-        constructor --verbose --platform win-64 .
-
-    - name: Test constructor API
-      run: |
-        python -c "from constructor import main; main.main(['--platform', 'win-64', '--verbose', '.'])"
-
-    - name: Check file permissions
-      run: |
-        ls -la
-        ls -la construct.yaml
+        # Crear copia de seguridad
+        cp construct.yaml construct-original.yaml
         
-    - name: Upload installer
+        # Convertir a formato Unix
+        dos2unix construct.yaml || true
+        
+        # Ejecutar constructor
+        constructor --verbose --platform win-64 .
+        
+    - name: Save artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ISQ_Suite_Installer
