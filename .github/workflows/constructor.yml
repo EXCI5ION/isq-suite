@@ -44,11 +44,25 @@ jobs:
       run: |
         # Verificar el contenido real del archivo
         cat construct.yaml
+
+    - name: Check file encoding
+      run: |
+        file construct.yaml
+        iconv -f UTF-8 -t UTF-8 construct.yaml > /dev/null || echo "Invalid encoding"
         
     - name: Build installer
       shell: bash -l {0}
       run: |
         constructor --verbose --platform win-64 .
+
+    - name: Test constructor API
+      run: |
+        python -c "from constructor import main; main.main(['--platform', 'win-64', '--verbose', '.'])"
+
+    - name: Check file permissions
+      run: |
+        ls -la
+        ls -la construct.yaml
         
     - name: Upload installer
       uses: actions/upload-artifact@v4
