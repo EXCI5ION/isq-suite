@@ -1,9 +1,9 @@
 from src.suite.gui.s_app import ScalingApp
 
 
-def run():
+def main():
     app = ScalingApp()
 
 
 if __name__ == "__main__":
-    run()
+    main()
