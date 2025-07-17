@@ -1,0 +1,4 @@
+name: Test_Install
+version: 1.0.0
+specs:
+  - python=3.10
