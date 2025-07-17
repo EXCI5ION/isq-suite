@@ -9,7 +9,7 @@ import sys
 import os
 
 
-def run():
+def main():
     root = tk.Tk()
     app = SuiteApp(root)
     root.mainloop()
@@ -208,4 +208,4 @@ class SuiteApp:
 
 
 if __name__ == "__main__":
-    run()
+    main()
