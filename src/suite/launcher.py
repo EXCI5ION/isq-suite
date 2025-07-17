@@ -9,6 +9,12 @@ import sys
 import os
 
 
+def run():
+    root = tk.Tk()
+    app = SuiteApp(root)
+    root.mainloop()
+
+
 class SuiteApp:
     def __init__(self, root):
         self.root = root
@@ -202,6 +208,4 @@ class SuiteApp:
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = SuiteApp(root)
-    root.mainloop()
+    run()
