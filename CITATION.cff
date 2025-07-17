@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "Si usás este software, por favor citá esta obra como se indica abajo."
+title: "ISQ Suite: herramientas en Python para el análisis de espectros de RMN"
+version: "1.0.0"
+authors:
+  - family-names: Anderson
+    given-names: Gabriel
+date-released: 2025-07-17
+repository-code: https://github.com/EXCI5ION/ISQ-Suite
+license: MIT
+keywords:
+  - RMN
+  - NMR
+  - Python
+  - Cuantification
+  - Integration
+  - Análisis de espectros
+  - Metabolomics
+  - Metabonomics
+type: software
+doi: 10.5281/zenodo.16011279
+url: https://doi.org/10.5281/zenodo.16011279
