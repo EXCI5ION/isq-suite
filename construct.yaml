@@ -6,7 +6,7 @@ channels:
   - conda-forge
   - defaults
 
-extra:          # <--- NUEVA SECCIÓN AGREGADA
+installers:          # <--- NUEVA SECCIÓN AGREGADA
     keep_pkgs: true  # Evita errores con DLLs de pywin32
 
 specs:
