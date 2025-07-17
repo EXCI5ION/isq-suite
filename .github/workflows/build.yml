@@ -12,30 +12,40 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        lf: true  # Usar terminadores de línea Unix
+        lf: true
         
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: "3.10"
         miniconda-version: "latest"
+        auto-activate-base: true  # Importante!
         activate-environment: builder
         channels: conda-forge,defaults
         channel-priority: strict
         
     - name: Install constructor
+      shell: bash -l {0}  # Usar shell login
       run: |
         conda install -c conda-forge constructor=3.11.3 -y
-        constructor --version
+        which constructor  # Verificar ubicación
+        constructor --version  # Verificar versión
+        
+    - name: Verify installation
+      shell: bash -l {0}
+      run: |
+        conda list constructor
+        python -c "import constructor; print(constructor.__version__)"
         
     - name: Build Linux installer
+      shell: bash -l {0}
       run: |
         constructor --platform linux-64 --verbose .
         
     - name: Upload Linux installer
       uses: actions/upload-artifact@v4
       with:
-        name: Linux_Installer
+        name: ISQ_Suite_Linux_Installer
         path: dist/*.sh
 
   build-macos:
@@ -51,21 +61,31 @@ jobs:
       with:
         python-version: "3.10"
         miniconda-version: "latest"
+        auto-activate-base: true  # Importante!
         activate-environment: builder
         channels: conda-forge,defaults
         channel-priority: strict
         
     - name: Install constructor
+      shell: bash -l {0}  # Usar shell login
       run: |
         conda install -c conda-forge constructor=3.11.3 -y
-        constructor --version
+        which constructor  # Verificar ubicación
+        constructor --version  # Verificar versión
+        
+    - name: Verify installation
+      shell: bash -l {0}
+      run: |
+        conda list constructor
+        python -c "import constructor; print(constructor.__version__)"
         
     - name: Build macOS installer
+      shell: bash -l {0}
       run: |
         constructor --platform osx-64 --verbose .
         
     - name: Upload macOS installer
       uses: actions/upload-artifact@v4
       with:
-        name: macOS_Installer
+        name: ISQ_Suite_macOS_Installer
         path: dist/*.pkg
