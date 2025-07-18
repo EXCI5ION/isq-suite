@@ -25,12 +25,12 @@ jobs:
           pip install nuitka
 
       - name: Build ISQ Suite Launcher
-        run: |
-          nuitka src/suite/launcher.py ^
-            --standalone ^
-            --enable-plugin=tk-inter ^
-            --output-dir=build ^
-            --output-filename=ISQ_Suite ^
+        run: >
+          nuitka src/suite/launcher.py
+            --standalone
+            --enable-plugin=tk-inter
+            --output-dir=build
+            --output-filename=ISQ_Suite
             --include-data-dir=resources=resources
 
       - name: Upload ISQ Suite Executable
