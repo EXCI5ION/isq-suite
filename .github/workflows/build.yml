@@ -40,5 +40,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ISQ_Suite
-          path: build/ISQ_Suite.dist/
+          path: build/launcher.dist/
 
