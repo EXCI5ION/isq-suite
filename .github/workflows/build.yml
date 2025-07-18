@@ -21,45 +21,51 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pyinstaller
+        pip install pyinstaller pillow
 
-    - name: Build Windows executables
+    - name: Build Windows applications (onedir)
       run: |
-        pyinstaller --onefile --name isq-suite.exe `
+        # Construir cada aplicación con su propia carpeta
+        pyinstaller --onedir --name ISQ_Suite `
           --icon resources/icons/ISQ.ico `
-          --add-data "resources/icons;resources/icons" `
+          --add-data "resources;resources" `
+          --add-data "src;src" `
+          --add-data "scripts;scripts" `
+          --hidden-import "src.suite.core" `
+          --hidden-import "src.suite.gui" `
           src/suite/launcher.py
         
-        pyinstaller --onefile --name isq-inmr.exe `
+        pyinstaller --onedir --name iNMR `
           --icon resources/icons/iNMR.ico `
-          --add-data "resources/icons;resources/icons" `
+          --add-data "resources;resources" `
+          --add-data "src;src" `
+          --add-data "scripts;scripts" `
+          --hidden-import "src.suite.core" `
+          --hidden-import "src.suite.gui" `
           src/suite/apps/inmr/maini.py
         
-        pyinstaller --onefile --name isq-qnmr.exe `
+        pyinstaller --onedir --name qNMR `
           --icon resources/icons/qNMR.ico `
-          --add-data "resources/icons;resources/icons" `
+          --add-data "resources;resources" `
+          --add-data "src;src" `
+          --add-data "scripts;scripts" `
+          --hidden-import "src.suite.core" `
+          --hidden-import "src.suite.gui" `
           src/suite/apps/qnmr/mainq.py
         
-        pyinstaller --onefile --name isq-snmr.exe `
+        pyinstaller --onedir --name sNMR `
           --icon resources/icons/sNMR.ico `
-          --add-data "resources/icons;resources/icons" `
+          --add-data "resources;resources" `
+          --add-data "src;src" `
+          --add-data "scripts;scripts" `
+          --hidden-import "src.suite.core" `
+          --hidden-import "src.suite.gui" `
           src/suite/apps/snmr/mains.py
 
-        # Reemplaza el paso de Install Inno Setup con esto:
-    - name: Install Inno Setup manually
-      shell: powershell
-      run: |
-        # Descargar Inno Setup
-        $innosetupUrl = "https://files.jrsoftware.org/is/6/innosetup-6.2.0.exe"
-        $installerPath = "$env:RUNNER_TEMP\innosetup.exe"
-        Invoke-WebRequest -Uri $innosetupUrl -OutFile $installerPath
-        
-        # Instalar silenciosamente
-        Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NOCANCEL", "/NORESTART" -Wait
-        
-        # Agregar al PATH
-        $innoPath = "C:\Program Files (x86)\Inno Setup 6"
-        echo "$innoPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    - name: Install Inno Setup
+      uses: InnoSetup/setup-innosetup@v1
+      with:
+        version: '6.2.0'
 
     - name: Create installer script
       run: |
@@ -78,21 +84,23 @@ jobs:
         OutputDir=dist
 
         [Files]
-        Source: "dist\isq-suite.exe"; DestDir: "{app}\bin"
-        Source: "dist\isq-inmr.exe"; DestDir: "{app}\bin"
-        Source: "dist\isq-qnmr.exe"; DestDir: "{app}\bin"
-        Source: "dist\isq-snmr.exe"; DestDir: "{app}\bin"
-        Source: "resources\icons\*"; DestDir: "{app}\icons"
+        ; Suite principal
+        Source: "dist\ISQ_Suite\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+        
+        ; Aplicaciones individuales
+        Source: "dist\iNMR\*"; DestDir: "{app}\iNMR"; Flags: ignoreversion recursesubdirs
+        Source: "dist\qNMR\*"; DestDir: "{app}\qNMR"; Flags: ignoreversion recursesubdirs
+        Source: "dist\sNMR\*"; DestDir: "{app}\sNMR"; Flags: ignoreversion recursesubdirs
 
         [Icons]
-        Name: "{group}\ISQ Suite"; Filename: "{app}\bin\isq-suite.exe"; IconFilename: "{app}\icons\ISQ.ico"
-        Name: "{group}\iNMR"; Filename: "{app}\bin\isq-inmr.exe"; IconFilename: "{app}\icons\iNMR.ico"
-        Name: "{group}\qNMR"; Filename: "{app}\bin\isq-qnmr.exe"; IconFilename: "{app}\icons\qNMR.ico"
-        Name: "{group}\sNMR"; Filename: "{app}\bin\isq-snmr.exe"; IconFilename: "{app}\icons\sNMR.ico"
-        Name: "{commondesktop}\ISQ Suite"; Filename: "{app}\bin\isq-suite.exe"; IconFilename: "{app}\icons\ISQ.ico"
-        Name: "{commondesktop}\iNMR"; Filename: "{app}\bin\isq-inmr.exe"; IconFilename: "{app}\icons\iNMR.ico"
-        Name: "{commondesktop}\qNMR"; Filename: "{app}\bin\isq-qnmr.exe"; IconFilename: "{app}\icons\qNMR.ico"
-        Name: "{commondesktop}\sNMR"; Filename: "{app}\bin\isq-snmr.exe"; IconFilename: "{app}\icons\sNMR.ico"
+        ; Accesos directos para la suite
+        Name: "{group}\ISQ Suite"; Filename: "{app}\ISQ_Suite.exe"; IconFilename: "{app}\resources\icons\ISQ.ico"
+        Name: "{commondesktop}\ISQ Suite"; Filename: "{app}\ISQ_Suite.exe"; IconFilename: "{app}\resources\icons\ISQ.ico"
+        
+        ; Accesos directos para aplicaciones individuales
+        Name: "{group}\iNMR"; Filename: "{app}\iNMR\iNMR.exe"; IconFilename: "{app}\iNMR\resources\icons\iNMR.ico"
+        Name: "{group}\qNMR"; Filename: "{app}\qNMR\qNMR.exe"; IconFilename: "{app}\qNMR\resources\icons\qNMR.ico"
+        Name: "{group}\sNMR"; Filename: "{app}\sNMR\sNMR.exe"; IconFilename: "{app}\sNMR\resources\icons\sNMR.ico"
         "@
         Set-Content -Path "installer.iss" -Value $issContent
 
@@ -124,44 +132,66 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install -r requirements.txt
-        pip install pyinstaller
+        pip install pyinstaller pillow
 
-    - name: Build Linux executables
+    - name: Build Linux applications (onedir)
       run: |
-        pyinstaller --onefile --name isq-suite \
+        pyinstaller --onedir --name ISQ_Suite \
           --icon resources/icons/ISQ.ico \
-          --add-data "resources/icons:resources/icons" \
+          --add-data "resources:resources" \
+          --add-data "src:src" \
+          --add-data "scripts:scripts" \
+          --hidden-import "src.suite.core" \
+          --hidden-import "src.suite.gui" \
           src/suite/launcher.py
         
-        pyinstaller --onefile --name isq-inmr \
+        pyinstaller --onedir --name iNMR \
           --icon resources/icons/iNMR.ico \
-          --add-data "resources/icons:resources/icons" \
+          --add-data "resources:resources" \
+          --add-data "src:src" \
+          --add-data "scripts:scripts" \
+          --hidden-import "src.suite.core" \
+          --hidden-import "src.suite.gui" \
           src/suite/apps/inmr/maini.py
         
-        pyinstaller --onefile --name isq-qnmr \
+        pyinstaller --onedir --name qNMR \
           --icon resources/icons/qNMR.ico \
-          --add-data "resources/icons:resources/icons" \
+          --add-data "resources:resources" \
+          --add-data "src:src" \
+          --add-data "scripts:scripts" \
+          --hidden-import "src.suite.core" \
+          --hidden-import "src.suite.gui" \
           src/suite/apps/qnmr/mainq.py
         
-        pyinstaller --onefile --name isq-snmr \
+        pyinstaller --onedir --name sNMR \
           --icon resources/icons/sNMR.ico \
-          --add-data "resources/icons:resources/icons" \
+          --add-data "resources:resources" \
+          --add-data "src:src" \
+          --add-data "scripts:scripts" \
+          --hidden-import "src.suite.core" \
+          --hidden-import "src.suite.gui" \
           src/suite/apps/snmr/mains.py
 
     - name: Package Linux distribution
       run: |
-        # Crear paquete .tar.gz para distribución
-        mkdir -p isq_suite_linux/bin
-        mkdir -p isq_suite_linux/icons
+        # Crear estructura de directorios para el paquete
+        mkdir -p isq_suite_linux
+        mkdir -p isq_suite_linux/ISQ_Suite
+        mkdir -p isq_suite_linux/iNMR
+        mkdir -p isq_suite_linux/qNMR
+        mkdir -p isq_suite_linux/sNMR
         
-        cp dist/isq-* isq_suite_linux/bin/
-        cp resources/icons/* isq_suite_linux/icons/
+        # Copiar aplicaciones
+        cp -r dist/ISQ_Suite/* isq_suite_linux/ISQ_Suite/
+        cp -r dist/iNMR/* isq_suite_linux/iNMR/
+        cp -r dist/qNMR/* isq_suite_linux/qNMR/
+        cp -r dist/sNMR/* isq_suite_linux/sNMR/
         
         # Crear script de instalación
         cat > isq_suite_linux/install.sh <<'EOL'
         #!/bin/bash
         
-        # Verificar si es root
+        # Verificar permisos de administrador
         if [ "$(id -u)" -ne 0 ]; then
             echo "Por favor ejecute este script como root o con sudo"
             exit 1
@@ -173,16 +203,19 @@ jobs:
         mkdir -p "$INSTALL_DIR"
         
         # Copiar archivos
-        cp -r bin/* "$INSTALL_DIR/"
-        cp -r icons "$INSTALL_DIR/"
+        cp -r ISQ_Suite "$INSTALL_DIR/"
+        cp -r iNMR "$INSTALL_DIR/"
+        cp -r qNMR "$INSTALL_DIR/"
+        cp -r sNMR "$INSTALL_DIR/"
         
         # Crear accesos directos para todas las aplicaciones
-        for app in suite inmr qnmr snmr; do
-            cat > "/usr/share/applications/isq-$app.desktop" <<DESKTOP
+        for app in ISQ_Suite iNMR qNMR sNMR; do
+            app_name=$(basename "$app")
+            cat > "/usr/share/applications/$app_name.desktop" <<DESKTOP
             [Desktop Entry]
-            Name=ISQ ${app^}
-            Exec=$INSTALL_DIR/isq-$app
-            Icon=$INSTALL_DIR/icons/${app^^}NMR.ico
+            Name=$app_name
+            Exec=$INSTALL_DIR/$app_name/$app_name
+            Icon=$INSTALL_DIR/$app_name/resources/icons/${app_name}.ico
             Terminal=false
             Type=Application
             Categories=Science;
@@ -215,44 +248,60 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip install pyinstaller
+        pip install pyinstaller pillow
 
-    - name: Build macOS applications
+    - name: Build macOS applications (onedir)
       run: |
-        # Crear bundles .app
-        pyinstaller --name "ISQ Suite" --windowed \
+        # Construir cada aplicación con su propia carpeta
+        pyinstaller --onedir --name "ISQ Suite" \
           --icon resources/icons/ISQ.ico \
-          --osx-bundle-identifier com.exci5ion.isq-suite \
+          --add-data "resources:resources" \
+          --add-data "src:src" \
+          --add-data "scripts:scripts" \
+          --hidden-import "src.suite.core" \
+          --hidden-import "src.suite.gui" \
           src/suite/launcher.py
         
-        pyinstaller --name "iNMR" --windowed \
+        pyinstaller --onedir --name "iNMR" \
           --icon resources/icons/iNMR.ico \
-          --osx-bundle-identifier com.exci5ion.inmr \
+          --add-data "resources:resources" \
+          --add-data "src:src" \
+          --add-data "scripts:scripts" \
+          --hidden-import "src.suite.core" \
+          --hidden-import "src.suite.gui" \
           src/suite/apps/inmr/maini.py
         
-        pyinstaller --name "qNMR" --windowed \
+        pyinstaller --onedir --name "qNMR" \
           --icon resources/icons/qNMR.ico \
-          --osx-bundle-identifier com.exci5ion.qnmr \
+          --add-data "resources:resources" \
+          --add-data "src:src" \
+          --add-data "scripts:scripts" \
+          --hidden-import "src.suite.core" \
+          --hidden-import "src.suite.gui" \
           src/suite/apps/qnmr/mainq.py
         
-        pyinstaller --name "sNMR" --windowed \
+        pyinstaller --onedir --name "sNMR" \
           --icon resources/icons/sNMR.ico \
-          --osx-bundle-identifier com.exci5ion.snmr \
+          --add-data "resources:resources" \
+          --add-data "src:src" \
+          --add-data "scripts:scripts" \
+          --hidden-import "src.suite.core" \
+          --hidden-import "src.suite.gui" \
           src/suite/apps/snmr/mains.py
 
     - name: Create DMG installer
       run: |
         # Crear estructura de directorios
         mkdir ISQ_Suite_Installation
-        mv dist/"ISQ Suite.app" ISQ_Suite_Installation/
-        mv dist/"iNMR.app" ISQ_Suite_Installation/
-        mv dist/"qNMR.app" ISQ_Suite_Installation/
-        mv dist/"sNMR.app" ISQ_Suite_Installation/
+        mv dist/"ISQ Suite" ISQ_Suite_Installation/
+        mv dist/"iNMR" ISQ_Suite_Installation/
+        mv dist/"qNMR" ISQ_Suite_Installation/
+        mv dist/"sNMR" ISQ_Suite_Installation/
         
         # Crear acceso directo a Aplicaciones
         ln -s /Applications ISQ_Suite_Installation/Applications
         
-        # Crear DMG con mejor formato
+        # Crear DMG
         hdiutil create -volname "ISQ Suite" \
           -srcfolder ISQ_Suite_Installation \
           -ov -format UDZO \
