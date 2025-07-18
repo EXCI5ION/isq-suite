@@ -43,7 +43,7 @@ Para dudas, sugerencias o contribuciones, podés abrir un [Issue](https://github
 
 ## ⚙️ Requisitos
 
-- Python 3.10
+- Python 3.12
 - [Ver archivo `requirements.txt`](./requirements.txt) para conocer todas las dependencias necesarias.
 
 Instalación de dependencias:
