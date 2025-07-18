@@ -3,40 +3,10 @@ import sys
 import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox
+from suite.utils import get_resource_path
 from PIL import Image, ImageTk
 from pathlib import Path
 
-def resource_path(relative_path):
-    """Obtiene la ruta absoluta a los recursos en cualquier entorno"""
-    try:
-        # 1. PyInstaller crea una carpeta temporal en _MEIPASS
-        if getattr(sys, 'frozen', False):
-            base_path = Path(sys.executable).parent
-        else:
-            base_path = Path(__file__).resolve().parent.parent.parent
-    except Exception:
-        base_path = Path.cwd()
-    
-    # Convertir a Path si es string
-    if isinstance(relative_path, str):
-        relative_path = Path(relative_path)
-    
-    # Buscar en varias ubicaciones posibles
-    paths_to_try = [
-        base_path / relative_path,
-        base_path / "resources" / relative_path,
-        base_path / "src" / "suite" / "resources" / relative_path,
-        base_path / "src" / relative_path,
-        base_path / ".." / "resources" / relative_path
-    ]
-    
-    for path in paths_to_try:
-        if path.exists():
-            return str(path)
-    
-    # Si no se encuentra, mostrar advertencia pero continuar
-    print(f"[ADVERTENCIA] Recurso no encontrado: {relative_path}")
-    return str(paths_to_try[0])  # Devolver la ruta principal esperada
 
 class SuiteApp:
     def __init__(self, root):
@@ -46,7 +16,8 @@ class SuiteApp:
         self.root.resizable(False, False)
         
         # Cargar icono de la ventana
-        icon_path = resource_path("icons/ISQ.ico")
+        icon_path = get_resource_path("icons/ISQ.ico")
+        self.root.iconbitmap(icon_path)
         if icon_path and os.path.exists(icon_path):
             try:
                 self.root.iconbitmap(icon_path)
@@ -94,7 +65,7 @@ class SuiteApp:
             app_frame = ttk.Frame(apps_frame, padding=10)
             app_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH, padx=15)
 
-            icon_path = resource_path(f"icons/{app['icon']}")
+            icon_path = get_resource_path(f"icons/{app['icon']}")
             if icon_path and os.path.exists(icon_path):
                 try:
                     # Cargar y procesar imagen
