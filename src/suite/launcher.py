@@ -1,15 +1,42 @@
+import os
+import sys
+import subprocess
+import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 from pathlib import Path
-import tkinter as tk
-import subprocess
-import sys
-import os
 
-def main():
-    root = tk.Tk()
-    app = SuiteApp(root)
-    root.mainloop()
+def resource_path(relative_path):
+    """Obtiene la ruta absoluta a los recursos en cualquier entorno"""
+    try:
+        # 1. PyInstaller crea una carpeta temporal en _MEIPASS
+        if getattr(sys, 'frozen', False):
+            base_path = Path(sys.executable).parent
+        else:
+            base_path = Path(__file__).resolve().parent.parent.parent
+    except Exception:
+        base_path = Path.cwd()
+    
+    # Convertir a Path si es string
+    if isinstance(relative_path, str):
+        relative_path = Path(relative_path)
+    
+    # Buscar en varias ubicaciones posibles
+    paths_to_try = [
+        base_path / relative_path,
+        base_path / "resources" / relative_path,
+        base_path / "src" / "suite" / "resources" / relative_path,
+        base_path / "src" / relative_path,
+        base_path / ".." / "resources" / relative_path
+    ]
+    
+    for path in paths_to_try:
+        if path.exists():
+            return str(path)
+    
+    # Si no se encuentra, mostrar advertencia pero continuar
+    print(f"[ADVERTENCIA] Recurso no encontrado: {relative_path}")
+    return str(paths_to_try[0])  # Devolver la ruta principal esperada
 
 class SuiteApp:
     def __init__(self, root):
@@ -18,51 +45,20 @@ class SuiteApp:
         self.root.geometry("500x200")
         self.root.resizable(False, False)
         
-        # Obtener la ruta base correcta para recursos
-        self.base_path = self.get_base_path()
-        
-        # Cargar el icono de la ventana
-        icon_path = self.resource_path("icons/ISQ.ico")
+        # Cargar icono de la ventana
+        icon_path = resource_path("icons/ISQ.ico")
         if icon_path and os.path.exists(icon_path):
-            self.root.iconbitmap(icon_path)
+            try:
+                self.root.iconbitmap(icon_path)
+            except Exception as e:
+                print(f"Error cargando ícono de ventana: {str(e)}")
+        else:
+            print(f"Ícono de ventana no encontrado: {icon_path}")
         
-        self.app_icons = []
+        self.app_icons = []  # Para mantener referencias a imágenes
         self.create_widgets()
         self.center_window()
     
-    def get_base_path(self):
-        """Obtiene la ruta base correcta según el entorno"""
-        if getattr(sys, 'frozen', False):  # Ejecución como binario empaquetado
-            return Path(sys.executable).parent
-        else:  # Ejecución desde código fuente
-            return Path(__file__).resolve().parent.parent.parent
-    
-    def resource_path(self, relative_path):
-        """Convierte una ruta relativa a una ruta absoluta válida para PyInstaller"""
-        try:
-            # PyInstaller crea una carpeta temporal en _MEIPASS
-            base_path = sys._MEIPASS
-        except Exception:
-            base_path = os.path.abspath(".")
-        
-        # Primero intentar en la ruta de recursos empaquetados
-        packaged_path = os.path.join(base_path, relative_path)
-        if os.path.exists(packaged_path):
-            return packaged_path
-        
-        # Luego intentar en la ruta base del proyecto
-        project_path = os.path.join(self.base_path, "resources", relative_path)
-        if os.path.exists(project_path):
-            return project_path
-        
-        # Finalmente intentar en la estructura de desarrollo alternativa
-        dev_path = os.path.join(self.base_path.parent, "resources", relative_path)
-        if os.path.exists(dev_path):
-            return dev_path
-        
-        print(f"Recurso no encontrado: {relative_path}")
-        return None
-
     def center_window(self):
         """Centra la ventana en la pantalla"""
         self.root.update_idletasks()
@@ -73,7 +69,7 @@ class SuiteApp:
         self.root.geometry(f'+{x}+{y}')
 
     def create_widgets(self):
-        """Crea la interfaz de la suite con botones que son imágenes de íconos"""
+        """Crea la interfaz con botones de íconos para cada aplicación"""
         main_frame = ttk.Frame(self.root, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -87,29 +83,30 @@ class SuiteApp:
         apps_frame = ttk.Frame(main_frame)
         apps_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
+        # Configuración de aplicaciones disponibles
         app_config = [
-            {"name": "iRMN", "app": "inmr", "icon": "iNMR.ico"},
-            {"name": "sNMR", "app": "snmr", "icon": "sNMR.ico"},
-            {"name": "qNMR", "app": "qnmr", "icon": "qNMR.ico"}
+            {"name": "iNMR", "app": "iNMR", "icon": "iNMR.ico"},
+            {"name": "sNMR", "app": "sNMR", "icon": "sNMR.ico"},
+            {"name": "qNMR", "app": "qNMR", "icon": "qNMR.ico"}
         ]
 
         for app in app_config:
             app_frame = ttk.Frame(apps_frame, padding=10)
             app_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH, padx=15)
 
-            icon_path = self.resource_path(f"icons/{app['icon']}")
+            icon_path = resource_path(f"icons/{app['icon']}")
             if icon_path and os.path.exists(icon_path):
                 try:
+                    # Cargar y procesar imagen
                     img = Image.open(icon_path)
                     if img.mode != 'RGBA':
                         img = img.convert('RGBA')
                     
-                    base_size = 64
-                    img.thumbnail((base_size, base_size))
-                    
+                    img.thumbnail((64, 64))
                     icon = ImageTk.PhotoImage(img)
-                    self.app_icons.append(icon)
+                    self.app_icons.append(icon)  # Mantener referencia
                     
+                    # Crear botón con imagen
                     app_btn = tk.Button(
                         app_frame,
                         image=icon,
@@ -121,6 +118,7 @@ class SuiteApp:
                     )
                     app_btn.pack(pady=(0, 5))
                     
+                    # Etiqueta con nombre de la aplicación
                     app_label = ttk.Label(
                         app_frame,
                         text=app["name"],
@@ -129,14 +127,14 @@ class SuiteApp:
                     )
                     app_label.pack()
                 except Exception as e:
-                    print(f"Error cargando ícono: {str(e)}")
+                    print(f"Error procesando ícono: {str(e)}")
                     self.create_text_button(app_frame, app)
             else:
                 print(f"Ícono no encontrado: {icon_path}")
                 self.create_text_button(app_frame, app)
 
     def create_text_button(self, parent, app):
-        """Crea un botón de texto como alternativa"""
+        """Crea un botón de texto cuando no hay ícono disponible"""
         app_btn = ttk.Button(
             parent,
             text=app["name"],
@@ -146,35 +144,49 @@ class SuiteApp:
         app_btn.pack(pady=(0, 10))
 
     def launch_app(self, app_name):
-        """Lanza la aplicación seleccionada por su nombre corto"""
+        """Inicia la aplicación seleccionada"""
         try:
-            # Determinar el nombre del ejecutable según la plataforma
-            executable = f"isq-{app_name}"
-            if sys.platform == "win32":
-                executable += ".exe"
-            
-            # Ruta base donde buscar los ejecutables
+            # Determinar rutas según el entorno
             if getattr(sys, 'frozen', False):
-                base_dir = os.path.dirname(sys.executable)
-            else:
-                base_dir = os.path.join(self.base_path, "dist")
-            
-            app_path = os.path.join(base_dir, executable)
-            
-            if not os.path.exists(app_path):
-                # Segunda opción: buscar en el mismo directorio que el launcher
-                app_path = os.path.join(os.path.dirname(sys.executable), executable)
+                # Modo empaquetado
+                base_dir = Path(sys.executable).parent
+                app_path = base_dir / app_name / f"{app_name}.exe"
                 
-            if os.path.exists(app_path):
-                subprocess.Popen([app_path])
+                # Fallback: Buscar en dist/
+                if not app_path.exists():
+                    app_path = base_dir / "dist" / app_name / f"{app_name}.exe"
+            else:
+                # Modo desarrollo
+                base_dir = Path(__file__).resolve().parent.parent.parent
+                app_path = base_dir / "dist" / app_name / app_name
+                if sys.platform == "win32":
+                    app_path = app_path.with_suffix(".exe")
+            
+            # Verificar existencia y ejecutar
+            if app_path.exists():
+                # Configurar entorno para las dependencias
+                env = os.environ.copy()
+                env["PYTHONPATH"] = str(base_dir) + os.pathsep + env.get("PYTHONPATH", "")
+                
+                subprocess.Popen([str(app_path)], env=env)
             else:
                 messagebox.showerror(
                     "Error", 
-                    f"No se encontró el ejecutable para {app_name}:\n{app_path}"
+                    f"Ejecutable no encontrado:\n{app_path}"
                 )
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo iniciar la aplicación:\n{str(e)}")
 
+def run():
+    """Función principal para iniciar la aplicación"""
+    root = tk.Tk()
+    app = SuiteApp(root)
+    root.mainloop()
 
 if __name__ == "__main__":
-    main()
+    # Diagnóstico inicial (opcional)
+    print("=== Entorno de ejecución ===")
+    print(f"Frozen: {getattr(sys, 'frozen', False)}")
+    print(f"Base path: {Path(__file__).resolve().parent.parent.parent}")
+    
+    run()
