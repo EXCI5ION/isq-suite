@@ -32,7 +32,8 @@ jobs:
             --enable-plugin=tk-inter ^
             --output-dir=build ^
             --output-filename=ISQ_Suite ^
-            --include-data-dir=resources=resources
+            --include-data-dir=resources=resources ^
+            --assume-yes-for-downloads
 
 
       - name: Upload ISQ Suite Executable
