@@ -6,7 +6,7 @@
 - **sNMR** – Escalado y normalización de espectros.
 - **qNMR** – Cuantificación de metabolitos utilizando referencia interna o externa.
 
-Descarga disponible en: https://github.com/EXCI5ION/isq-suite
+Descarga disponible en: https://github.com/EXCI5ION/isq-suite/releases/
 
 ## 🚀 Aplicaciones incluidas
 
