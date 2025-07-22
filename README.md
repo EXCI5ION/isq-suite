@@ -2,7 +2,7 @@
 
 **ISQ Suite** es una colección de herramientas desarrolladas en Python para el análisis de espectros de Resonancia Magnética Nuclear (RMN) organizados en formato matricial (.csv o .txt). La suite está compuesta por tres programas principales:
 
-- **iNMR** – Integración de señales en espectros de RMN.
+- **iNMR** – Integración de señales en set de espectros de RMN.
 - **sNMR** – Escalado y normalización de espectros.
 - **qNMR** – Cuantificación de metabolitos utilizando referencia interna o externa.
 
@@ -11,10 +11,10 @@ Descarga disponible en: https://github.com/EXCI5ION/isq-suite/releases/
 ## 🚀 Aplicaciones incluidas
 
 ### 🟩 iNMR
-Permite seleccionar regiones de interés e integrar los picos correspondientes en sets de datos de RMN.
+Permite seleccionar regiones de interés e integrar los picos correspondientes en sets de datos de RMN y exportar tablas de datos con integrales relativas o absolutas.
 
 ### 🟦 sNMR
-Escala y normaliza espectros en función de distintas estrategias (por ejemplo, intensidad máxima o área total).
+Escala y normaliza espectros en función de distintas estrategias (por ejemplo, estándar interno, PQN o área total).
 
 ### 🟥 qNMR
 Cuantifica metabolitos a partir de integrales, utilizando estándares internos o externos según el diseño experimental.
