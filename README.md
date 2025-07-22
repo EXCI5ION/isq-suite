@@ -1,52 +1,53 @@
 # ISQ Suite
 
-**ISQ Suite** es una colección de herramientas desarrolladas en Python para el análisis de espectros de Resonancia Magnética Nuclear (RMN) organizados en formato matricial (.csv o .txt). La suite está compuesta por tres programas principales:
+**ISQ Suite** is a collection of tools developed in Python for the analysis of Nuclear Magnetic Resonance (NMR) spectra organized in matrix format (.csv or .txt).
+The suite includes three main programs:
 
-- **iNMR** – Integración de señales en set de espectros de RMN.
-- **sNMR** – Escalado y normalización de espectros.
-- **qNMR** – Cuantificación de metabolitos utilizando referencia interna o externa.
+- **iNMR** – Signal integration in NMR spectra datasets.  
+- **sNMR** – Spectra scaling and normalization.  
+- **qNMR** – Metabolite quantification using internal or external reference.
 
-Descarga disponible en: https://github.com/EXCI5ION/isq-suite/releases/
+Download available at: https://github.com/EXCI5ION/isq-suite/releases/
 
-## 🚀 Aplicaciones incluidas
+## 🚀 Included Applications
 
-### 🟩 iNMR
-Permite seleccionar regiones de interés e integrar los picos correspondientes en sets de datos de RMN y exportar tablas de datos con integrales relativas o absolutas.
+### 🟩 iNMR  
+Allows selecting regions of interest and integrating the corresponding peaks in NMR datasets. It exports data tables with relative or absolute integrals.
 
-### 🟦 sNMR
-Escala y normaliza espectros en función de distintas estrategias (por ejemplo, estándar interno, PQN o área total).
+### 🟦 sNMR  
+Scales and normalizes spectra based on various strategies (e.g., internal standard, PQN, or total area).
 
-### 🟥 qNMR
-Cuantifica metabolitos a partir de integrales, utilizando estándares internos o externos según el diseño experimental.
-
----
-
-## 📁 Estructura de los datos
-
-Los datos de entrada deben estar organizados como una **matriz** donde:
-
-- La **primera columna** contiene los valores de desplazamiento químico (ppm).
-- Las **filas siguientes** contienen las intensidades para cada espectro.
-- La **primera fila** (desde la segunda columna en adelante) contiene los nombres de las muestras.
-
-Los archivos deben tener extensión `.csv` o `.txt` (con valores separados por coma).
-
-> 📘 Una descripción más detallada del formato de los datos y de cada programa se encuentra disponible en el [manual de usuario](./MANUAL.md).
-
-## 👤 Autoría
-
-Desarrollado por **Gabriel Anderson**
-
-Para dudas, sugerencias o contribuciones, podés abrir un [Issue](https://github.com/EXCI5ION/ISQ-Suite/issues).
+### 🟥 qNMR  
+Quantifies metabolites based on integrals, using internal or external standards depending on the experimental design.
 
 ---
 
-## ⚙️ Requisitos
+## 📁 Data Structure
 
-- Python 3.12
-- [Ver archivo `requirements.txt`](./requirements.txt) para conocer todas las dependencias necesarias.
+Input data must be organized as a **matrix** where:
 
-Instalación de dependencias:
+- The **first column** contains chemical shift values (ppm).  
+- The **following rows** contain intensity values for each spectrum.  
+- The **first row** (starting from the second column onward) contains the sample names.
+
+Files must have a `.csv` or `.txt` extension (with comma-separated values).
+
+> 📘 A more detailed description of the data format and each program is available in the [User Manual](./MANUAL.md).
+
+## 👤 Author
+
+Developed by **Gabriel Anderson**
+
+For questions, suggestions, or contributions, feel free to open an [Issue](https://github.com/EXCI5ION/ISQ-Suite/issues).
+
+---
+
+## ⚙️ Requirements
+
+- Python 3.12  
+- [See the `requirements.txt` file](./requirements.txt) for a list of all required dependencies.
+
+To install the dependencies:
 
 ```bash
 pip install -r requirements.txt
